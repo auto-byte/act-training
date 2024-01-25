@@ -62,7 +62,10 @@ public class ActivitiTests {
         ProcessEngine processEngine = initProcessEngine();
         TaskService taskService = processEngine.getTaskService();
         Task task = taskService.createTaskQuery().taskAssignee("Sam").singleResult();
-        taskService.complete(task.getId());
+        if (task != null) {
+            System.out.println("complete: " + task.getId());
+            taskService.complete(task.getId());
+        }
     }
 
     @Test
@@ -86,6 +89,43 @@ public class ActivitiTests {
         ProcessEngine processEngine = initProcessEngine();
         TaskService taskService = processEngine.getTaskService();
         Task task = taskService.createTaskQuery().taskCandidateOrAssigned("Tom").singleResult();
+        taskService.complete(task.getId());
+    }
+
+    @Test
+    public void deploymentOneProcessOfChangeToParallel() {
+        ProcessEngine processEngine = initProcessEngine();
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+        Deployment deploy = repositoryService.createDeployment()
+                .addClasspathResource("processes/activiti_process_Par.bpmn20.xml")
+                .deploy();
+        System.out.println(deploy);
+    }
+
+
+    @Test
+    public void completeTaskStep1OfChangeToParallel() {
+        ProcessEngine processEngine = initProcessEngine();
+        TaskService taskService = processEngine.getTaskService();
+        Task task = taskService.createTaskQuery()
+                .processDefinitionId("activiti-process:3:17503")
+                .taskAssignee("Cat").singleResult();
+
+        if (task != null) {
+            System.out.println("complete: " + task.getId());
+            taskService.complete(task.getId());
+        }
+    }
+
+    @Test
+    public void claimAndCompleteTaskStep2OfChangeToParallel() {
+        ProcessEngine processEngine = initProcessEngine();
+        TaskService taskService = processEngine.getTaskService();
+        Task task = taskService.createTaskQuery()
+                .processDefinitionId("activiti-process:3:17503")
+                .taskCandidateOrAssigned("Leo")
+                .singleResult();
+        taskService.claim(task.getId(), "Leo");
         taskService.complete(task.getId());
     }
 }
