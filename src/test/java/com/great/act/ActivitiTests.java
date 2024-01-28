@@ -1,6 +1,7 @@
 package com.great.act;
 
 import org.activiti.engine.*;
+import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
@@ -20,12 +21,11 @@ public class ActivitiTests {
 
     public ProcessEngine initProcessEngine() {
         ProcessEngineConfiguration engineConfiguration = ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration();
+        engineConfiguration.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE);
         engineConfiguration.setJdbcDriver("com.mysql.cj.jdbc.Driver");
-        engineConfiguration.setJdbcUrl("jdbc:mysql://localhost:3306/act_demo?characterEncoding=utf-8&serverTimezone=Asia/Shanghai");
+        engineConfiguration.setJdbcUrl("jdbc:mysql://localhost:3306/act_play?characterEncoding=utf-8&useUnicode=true&serverTimezone=Asia/Shanghai&nullCatalogMeansCurrent=true");
         engineConfiguration.setJdbcUsername("root");
         engineConfiguration.setJdbcPassword("root123");
-
-        engineConfiguration.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE);
 
         return engineConfiguration.buildProcessEngine();
     }
@@ -42,19 +42,18 @@ public class ActivitiTests {
 
     @Test
     public void startOneProcesses() {
-        List<String> names = new ArrayList<>();
-        names.add("Sam");
-        names.add("Tom");
-        names.add("Leo");
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("names", names);
-
         ProcessEngine processEngine = initProcessEngine();
         RuntimeService runtimeService = processEngine.getRuntimeService();
-        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("activiti-process", params);
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("activiti-process");
 
         System.out.println(processInstance.getActivityId());
+    }
+
+    @Test
+    public void queryTask() {
+        ProcessEngine processEngine = initProcessEngine();
+        System.out.println(((ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration())
+                .getDbSqlSessionFactory().getIdGenerator().getNextId());
     }
 
     @Test
@@ -97,7 +96,7 @@ public class ActivitiTests {
         ProcessEngine processEngine = initProcessEngine();
         RepositoryService repositoryService = processEngine.getRepositoryService();
         Deployment deploy = repositoryService.createDeployment()
-                .addClasspathResource("processes/activiti_process_Par.bpmn20.xml")
+                .addClasspathResource("processes/activiti_process_par.bpmn20.xml")
                 .deploy();
         System.out.println(deploy);
     }
